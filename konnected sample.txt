@@ -1,0 +1,121 @@
+--Configuration.yaml 
+
+#Konnected
+konnected:
+  access_token: randomstring <-- Random string, can be anything
+  devices:
+    - id: xxxxxxxxxxxx <- MAC address of konnected board
+      binary_sensors:
+        - zone: 1
+          type: door
+          name: 'Back Door'
+        - zone: 2
+          type: motion
+          name: 'Living Motion'
+        - zone: 3
+          type: door
+          name: 'Front Door'
+        - zone: 4
+          type: window
+          name: 'Bedroom Windows'
+        - zone: 5
+          type: window
+          name: 'Kitchen-Living Windows'
+      switches:
+        - zone: out
+          name: siren
+          
+alarm_control_panel:
+  - platform: manual
+    name: Home Alarm
+    code: !secret alarm_code
+    pending_time: 20
+    delay_time: 20
+    trigger_time: 4
+    disarmed:
+      trigger_time: 0
+    armed_home:
+      pending_time: 0
+      delay_time: 0 
+	  
+	  
+	  
+--Automations.yaml
+
+- alias: Alarm Away
+  hide_entity: true
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.back_door
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.front_door
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.bedroom_windows
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.kitchen_living_windows
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.living_motion
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: alarm_control_panel.home_alarm
+    state: armed_away
+  action:
+    service: alarm_control_panel.alarm_trigger
+    entity_id: alarm_control_panel.home_alarm
+  id: ff97e68e8fc4439fb7ce7bf9af8db941
+- alias: Alarm Home
+  hide_entity: true
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.back_door
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.front_door
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.bedroom_windows
+    to: 'on'
+  - platform: state
+    entity_id: binary_sensor.kitchen_living_windows
+    to: 'on'
+  condition:
+  - condition: state
+    entity_id: alarm_control_panel.home_alarm
+    state: armed_home
+  action:
+    service: alarm_control_panel.alarm_trigger
+    entity_id: alarm_control_panel.home_alarm
+  id: baa1d1aa835b40199e8bb97f702b9e8c
+- alias: Triggered Siren
+  hide_entity: true
+  trigger:
+  - platform: state
+    entity_id: alarm_control_panel.home_alarm
+    to: triggered
+  action:
+  - service: switch.turn_on
+    entity_id: switch.siren
+  - service: notify.iphone
+    data:
+      title: House Alarm
+      message: Something happened at home!
+      data:
+        push:
+          badge: 5
+  id: 1a11b7beb69a4e2bb4e3a3ffb5986f46
+- alias: Disarmed Off
+  hide_entity: true
+  trigger:
+  - platform: state
+    entity_id: alarm_control_panel.home_alarm
+    to: disarmed
+  action:
+    service: switch.turn_off
+    entity_id: switch.siren
+  id: 45606b1e870a462fb9e5cfb639789e04	  
+	  
